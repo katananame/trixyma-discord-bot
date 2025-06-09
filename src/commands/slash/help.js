@@ -12,11 +12,16 @@ module.exports = {
             .addFields(
                 { 
                     name: '🛠️ Basic Commands',
-                    value: '`/help` - Show command list'
+                    value: '`/help` - Show command list\n`/coinflip` - Flip a coin\n`/ping` - Check bot latency'
+                },
+                {
+                    name: '🎵 Music Commands',
+                    value: '`/join` - Join your voice channel',
+                    inline: false
                 },
                 {
                     name: '👮 Moderation (Admin Only)',
-                    value: '`/clear [amount]` - Clear specified number of messages'
+                    value: '`/clear [amount]` - Clear specified number of messages\n`/warn [user] [duration] [reason]` - Give timeout to user\n`/unwarn [user]` - Remove timeout from user'
                 }
             )
             .setFooter({ 
@@ -27,7 +32,7 @@ module.exports = {
 
         await interaction.reply({
             embeds: [embed],
-            flags: ['Ephemeral']
+            ephemeral: true
         });
     }
 }; 

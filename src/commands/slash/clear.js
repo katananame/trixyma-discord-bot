@@ -15,39 +15,63 @@ module.exports = {
             const errorEmbed = new EmbedBuilder()
                 .setColor('#9B59B6')
                 .setDescription('🟣 You do not have permission to use this command!')
+                .setFooter({ 
+                    text: 'Trixyma — Simple. Fast. Effective.',
+                    iconURL: interaction.client.user.displayAvatarURL()
+                })
                 .setTimestamp();
             
             return interaction.reply({ 
                 embeds: [errorEmbed], 
-                flags: ['Ephemeral']
+                ephemeral: true
             });
         }
 
         const amount = interaction.options.getInteger('amount');
 
         try {
-            await interaction.channel.bulkDelete(amount);
+            let totalDeletedCount = 0;
+            let remainingMessages = amount;
+
+            // Delete messages in batches of 100
+            while (remainingMessages > 0) {
+                const batchSize = Math.min(remainingMessages, 100);
+                const messages = await interaction.channel.messages.fetch({ limit: batchSize });
+                if (messages.size === 0) break; // No more messages to delete
+                
+                await interaction.channel.bulkDelete(messages);
+                totalDeletedCount += messages.size;
+                remainingMessages -= batchSize;
+            }
             
             const successEmbed = new EmbedBuilder()
                 .setColor('#9B59B6')
-                .setDescription(`🟣 Successfully deleted ${amount} messages!`)
+                .setDescription(`🟣 Successfully deleted ${totalDeletedCount} messages!`)
+                .setFooter({ 
+                    text: 'Trixyma — Simple. Fast. Effective.',
+                    iconURL: interaction.client.user.displayAvatarURL()
+                })
                 .setTimestamp();
             
             await interaction.reply({ 
                 embeds: [successEmbed], 
-                flags: ['Ephemeral']
+                ephemeral: true
             });
         } catch (error) {
             console.error('Error clearing messages:', error);
             
             const errorEmbed = new EmbedBuilder()
-                .setColor('#9B59B6')
-                .setDescription('🟣 An error occurred while deleting messages!')
+                .setColor('#ff0000')
+                .setDescription('🔴 An error occurred while deleting messages!')
+                .setFooter({ 
+                    text: 'Trixyma — Simple. Fast. Effective.',
+                    iconURL: interaction.client.user.displayAvatarURL()
+                })
                 .setTimestamp();
             
             await interaction.reply({ 
                 embeds: [errorEmbed], 
-                flags: ['Ephemeral']
+                ephemeral: true
             });
         }
     },

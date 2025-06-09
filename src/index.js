@@ -2,7 +2,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const { Client, GatewayIntentBits, Collection, ActivityType } = require('discord.js');
-const { prefix } = require('./config.json');
+const config = require('./config');
 
 const client = new Client({
     intents: [
@@ -62,12 +62,12 @@ client.once('ready', () => {
     console.log('Available prefix commands:', Array.from(client.prefixCommands.keys()));
     console.log('Available slash commands:', Array.from(client.slashCommands.keys()));
     
-    // Set the bot's presence
+    // Set the bot's presence using config
     client.user.setPresence({
         activities: [{
-            name: `${prefix}help | Trixyma`,
+            name: config.status.name,
             type: ActivityType.Streaming,
-            url: 'https://www.twitch.tv/trixyma'
+            url: config.status.url
         }],
         status: 'online'
     });
@@ -75,9 +75,9 @@ client.once('ready', () => {
 
 // Handle prefix commands
 client.on('messageCreate', async message => {
-    if (!message.content.startsWith(prefix) || message.author.bot) return;
+    if (!message.content.startsWith(config.prefix) || message.author.bot) return;
 
-    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    const args = message.content.slice(config.prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
 
     // Игнорируем неизвестные команды

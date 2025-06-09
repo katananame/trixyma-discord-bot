@@ -6,7 +6,7 @@ A modern Discord bot built with Discord.js v14, featuring both slash and prefix 
 
 - **Dual Command System**: Both slash (/) and prefix (t!) commands
 - **Moderation Tools**: Message clearing and more
-- **Beautiful Embeds**: All responses use elegant purple-themed embeds
+- **Beautiful Embeds**: Customizable colors for embeds via `config.js`
 - **Admin Controls**: Secure moderation commands with administrator-only access
 
 ## Commands
@@ -14,10 +14,20 @@ A modern Discord bot built with Discord.js v14, featuring both slash and prefix 
 ### Slash Commands
 - `/help` - Display all available commands
 - `/clear [amount]` - Clear specified number of messages (Admin only)
+- `/coinflip` - Flip a coin
+- `/warn [user] [duration] [reason]` - Give timeout to user (Admin only)
+- `/unwarn [user]` - Remove timeout from user (Admin only)
+- `/ping` - Check bot latency
+- `/join` - Join your voice channel
 
 ### Prefix Commands
 - `t!help` - Display all available commands
 - `t!clear [amount]` - Clear specified number of messages (Admin only)
+- `t!coinflip` - Flip a coin
+- `t!warn [user] [duration] [reason]` - Give timeout to user (Admin only)
+- `t!unwarn [user]` - Remove timeout from user (Admin only)
+- `t!ping` - Check bot latency
+- `t!join` - Join your voice channel
 
 ## Setup
 
@@ -55,12 +65,22 @@ npm run dev
 src/
 ├── commands/
 │   ├── slash/       # Slash commands
+│   │   ├── clear.js
+│   │   ├── coinflip.js
 │   │   ├── help.js
-│   │   └── clear.js
+│   │   ├── join.js
+│   │   ├── ping.js
+│   │   ├── unwarn.js
+│   │   └── warn.js
 │   └── prefix/      # Prefix commands
+│       ├── clear.js
+│       ├── coinflip.js
 │       ├── help.js
-│       └── clear.js
-├── config.json      # Bot configuration
+│       ├── join.js
+│       ├── ping.js
+│       ├── unwarn.js
+│       └── warn.js
+├── config.js        # Bot configuration
 ├── index.js         # Main bot file
 └── deploy-commands.js   # Command registration
 ```
@@ -76,4 +96,4 @@ src/
 - Node.js 16.9.0 or higher
 - Discord.js v14
 - A Discord Bot Token
-- Administrator permissions for moderation commands 
+- Administrator permissions for moderation commands
