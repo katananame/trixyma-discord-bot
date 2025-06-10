@@ -1,28 +1,28 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
+const { createErrorEmbed } = require('../../utils/embeds');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('clear')
-        .setDescription('Clear messages from the channel')
+        .setDescription('Clear specified number of messages')
         .addIntegerOption(option =>
             option.setName('amount')
                 .setDescription('Number of messages to delete')
-                .setRequired(true))
+                .setRequired(true)
+                .setMinValue(1))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-            const errorEmbed = new EmbedBuilder()
-                .setColor('#9B59B6')
-                .setDescription('🟣 You do not have permission to use this command!')
-                .setFooter({ 
-                    text: 'Trixyma — Simple. Fast. Effective.',
-                    iconURL: interaction.client.user.displayAvatarURL()
-                })
-                .setTimestamp();
-            
-            return interaction.reply({ 
-                embeds: [errorEmbed], 
+            return interaction.reply({
+                embeds: [createErrorEmbed('This command is only available to administrators!', interaction.client)],
+                ephemeral: true
+            });
+        }
+
+        if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.ManageMessages)) {
+            return interaction.reply({
+                embeds: [createErrorEmbed('I don\'t have permission to delete messages!', interaction.client)],
                 ephemeral: true
             });
         }
@@ -30,48 +30,56 @@ module.exports = {
         const amount = interaction.options.getInteger('amount');
 
         try {
-            let totalDeletedCount = 0;
-            let remainingMessages = amount;
+            let totalDeleted = 0;
+            let remaining = amount;
 
-            while (remainingMessages > 0) {
-                const batchSize = Math.min(remainingMessages, 100);
+            // Defer reply since this might take a while
+            await interaction.deferReply({ ephemeral: true });
+
+            while (remaining > 0) {
+                const batchSize = Math.min(remaining, 100);
                 const messages = await interaction.channel.messages.fetch({ limit: batchSize });
-                if (messages.size === 0) break;
+                const filteredMessages = messages.filter(msg => !msg.pinned);
                 
-                await interaction.channel.bulkDelete(messages);
-                totalDeletedCount += messages.size;
-                remainingMessages -= batchSize;
+                if (filteredMessages.size === 0) break;
+
+                await interaction.channel.bulkDelete(filteredMessages, true);
+                totalDeleted += filteredMessages.size;
+                remaining -= batchSize;
+
+                // Add a small delay to avoid rate limits
+                if (remaining > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
             }
             
+            if (totalDeleted === 0) {
+                return interaction.editReply({
+                    embeds: [createErrorEmbed('No messages found to delete!', interaction.client)]
+                });
+            }
+
             const successEmbed = new EmbedBuilder()
                 .setColor('#9B59B6')
-                .setDescription(`🟣 Successfully deleted ${totalDeletedCount} messages!`)
+                .setTitle('✅ Messages Cleared')
+                .setDescription(`Successfully deleted **${totalDeleted}** messages!`)
                 .setFooter({ 
                     text: 'Trixyma — Simple. Fast. Effective.',
                     iconURL: interaction.client.user.displayAvatarURL()
                 })
                 .setTimestamp();
-            
-            await interaction.reply({ 
-                embeds: [successEmbed], 
-                ephemeral: true
-            });
+
+            await interaction.editReply({ embeds: [successEmbed] });
         } catch (error) {
             console.error('Error clearing messages:', error);
-            
-            const errorEmbed = new EmbedBuilder()
-                .setColor('#ff0000')
-                .setDescription('🔴 An error occurred while deleting messages!')
-                .setFooter({ 
-                    text: 'Trixyma — Simple. Fast. Effective.',
-                    iconURL: interaction.client.user.displayAvatarURL()
-                })
-                .setTimestamp();
-            
-            await interaction.reply({ 
-                embeds: [errorEmbed], 
-                ephemeral: true
+            return interaction.editReply({
+                embeds: [createErrorEmbed(
+                    '**Error Clearing Messages**\n\n' +
+                    '❌ An error occurred while trying to delete messages.\n' +
+                    '⚠️ Messages older than 14 days cannot be bulk deleted.',
+                    interaction.client
+                )]
             });
         }
-    },
+    }
 }; 

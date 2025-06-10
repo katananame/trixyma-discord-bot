@@ -4,7 +4,7 @@ const config = require('../../config');
 const categories = [
     {
         name: '🎮 Entertainment Commands',
-        value: `\`${config.prefix}dice\` - Roll a dice\n\`${config.prefix}coinflip\` - Flip a coin`,
+        value: `\`${config.prefix}dice\` - Roll a dice\n\`${config.prefix}coinflip\` - Flip a coin\n\`${config.prefix}random [min-max]\` - Generate a random number\n\`${config.prefix}guess\` - Play a number guessing game\n\`${config.prefix}tictactoe\` - Play Tic-Tac-Toe with another player\n\`${config.prefix}poll\` - Create a poll with multiple options`,
         emoji: '🎮'
     },
     {
@@ -19,7 +19,7 @@ const categories = [
     },
     {
         name: '💬 Text Channel Commands (Admin Only)',
-        value: `\`${config.prefix}clear [amount]\` - Clear specified number of messages\n\`${config.prefix}slowmode <duration> [overall_duration]\` - Set slowmode for the current channel`,
+        value: `\`${config.prefix}clear [amount]\` - Clear specified number of messages\n\`${config.prefix}slowmode [duration] [overall_duration]\` - Set slowmode in the channel`,
         emoji: '💬'
     },
     {

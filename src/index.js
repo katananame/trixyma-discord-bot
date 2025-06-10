@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { Client, GatewayIntentBits, Collection, ActivityType } = require('discord.js');
 const config = require('./config');
+const { createErrorEmbed } = require('./utils/embeds');
 
 const client = new Client({
     intents: [

@@ -3,7 +3,7 @@ const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, Butt
 const categories = [
     {
         name: '🎮 Entertainment Commands',
-        value: '`/dice` - Roll a dice\n`/coinflip` - Flip a coin',
+        value: '`/dice` - Roll a dice\n`/coinflip` - Flip a coin\n`/random [min] [max]` - Generate a random number\n`/guess` - Play a number guessing game\n`/tictactoe` - Play Tic-Tac-Toe with another player\n`/poll` - Create a poll with multiple options',
         emoji: '🎮'
     },
     {
@@ -18,7 +18,7 @@ const categories = [
     },
     {
         name: '💬 Text Channel Commands (Admin Only)',
-        value: '`/clear [amount]` - Clear specified number of messages\n`/slowmode [duration] [overall_duration]` - Set slowmode for the current channel',
+        value: '`/clear [amount]` - Clear specified number of messages\n`/slowmode [duration] [overall_duration]` - Set slowmode in the channel',
         emoji: '💬'
     },
     {
