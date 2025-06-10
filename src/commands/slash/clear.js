@@ -33,11 +33,10 @@ module.exports = {
             let totalDeletedCount = 0;
             let remainingMessages = amount;
 
-            // Delete messages in batches of 100
             while (remainingMessages > 0) {
                 const batchSize = Math.min(remainingMessages, 100);
                 const messages = await interaction.channel.messages.fetch({ limit: batchSize });
-                if (messages.size === 0) break; // No more messages to delete
+                if (messages.size === 0) break;
                 
                 await interaction.channel.bulkDelete(messages);
                 totalDeletedCount += messages.size;

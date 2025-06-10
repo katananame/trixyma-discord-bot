@@ -5,7 +5,7 @@ module.exports = {
     // Настройки статуса бота
     status: {
         type: 'STREAMING',
-        name: 'Trixyma Bot',
+        name: 't!help | Trixyma',
         url: 'https://www.twitch.tv/trixyma'
     },
     

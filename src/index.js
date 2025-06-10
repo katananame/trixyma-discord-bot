@@ -12,11 +12,10 @@ const client = new Client({
     ]
 });
 
-// Initialize collections for commands
 client.slashCommands = new Collection();
 client.prefixCommands = new Collection();
+client.cooldowns = new Collection();
 
-// Load prefix commands
 const prefixCommandsPath = path.join(__dirname, 'commands', 'prefix');
 if (fs.existsSync(prefixCommandsPath)) {
     const prefixCommandFiles = fs.readdirSync(prefixCommandsPath).filter(file => file.endsWith('.js'));
@@ -36,7 +35,6 @@ if (fs.existsSync(prefixCommandsPath)) {
     }
 }
 
-// Load slash commands
 const slashCommandsPath = path.join(__dirname, 'commands', 'slash');
 if (fs.existsSync(slashCommandsPath)) {
     const slashCommandFiles = fs.readdirSync(slashCommandsPath).filter(file => file.endsWith('.js'));
@@ -56,13 +54,11 @@ if (fs.existsSync(slashCommandsPath)) {
     }
 }
 
-// When bot is ready
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
     console.log('Available prefix commands:', Array.from(client.prefixCommands.keys()));
     console.log('Available slash commands:', Array.from(client.slashCommands.keys()));
     
-    // Set the bot's presence using config
     client.user.setPresence({
         activities: [{
             name: config.status.name,
@@ -73,36 +69,93 @@ client.once('ready', () => {
     });
 });
 
-// Handle prefix commands
 client.on('messageCreate', async message => {
     if (!message.content.startsWith(config.prefix) || message.author.bot) return;
 
     const args = message.content.slice(config.prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
 
-    // Игнорируем неизвестные команды
     if (!client.prefixCommands.has(commandName)) return;
 
+    const command = client.prefixCommands.get(commandName);
+
+    if (command.cooldown) {
+        const { cooldowns } = client;
+        if (!cooldowns.has(command.name)) {
+            cooldowns.set(command.name, new Collection());
+        }
+        const now = Date.now();
+        const timestamps = cooldowns.get(command.name);
+        const cooldownAmount = command.cooldown * 1000;
+
+        if (timestamps.has(message.author.id)) {
+            const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+            if (now < expirationTime) {
+                const timeLeft = (expirationTime - now) / 1000;
+                return message.reply({
+                    embeds: [createErrorEmbed(
+                        `**Command on Cooldown**\n\n` +
+                        `⏳ Please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`,
+                        client
+                    )]
+                });
+            }
+        }
+
+        timestamps.set(message.author.id, now);
+        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+    }
+
     try {
-        await client.prefixCommands.get(commandName).execute(message, args);
+        await command.execute(message, args, client);
     } catch (error) {
         console.error('Error executing prefix command:', error);
         message.reply('An error occurred while executing the command.');
     }
 });
 
-// Handle slash commands
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
-    // Игнорируем неизвестные команды
     if (!client.slashCommands.has(interaction.commandName)) {
         console.log(`Ignoring unknown command: ${interaction.commandName}`);
         return;
     }
 
+    const command = client.slashCommands.get(interaction.commandName);
+
+    if (command.cooldown) {
+        const { cooldowns } = client;
+        if (!cooldowns.has(command.data.name)) {
+            cooldowns.set(command.data.name, new Collection());
+        }
+        const now = Date.now();
+        const timestamps = cooldowns.get(command.data.name);
+        const cooldownAmount = command.cooldown * 1000;
+
+        if (timestamps.has(interaction.user.id)) {
+            const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
+
+            if (now < expirationTime) {
+                const timeLeft = (expirationTime - now) / 1000;
+                return interaction.reply({
+                    embeds: [createErrorEmbed(
+                        `**Command on Cooldown**\n\n` +
+                        `⏳ Please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.data.name}\` command.`,
+                        interaction.client
+                    )],
+                    ephemeral: true
+                });
+            }
+        }
+
+        timestamps.set(interaction.user.id, now);
+        setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
+    }
+
     try {
-        await client.slashCommands.get(interaction.commandName).execute(interaction);
+        await command.execute(interaction);
     } catch (error) {
         console.error('Error executing slash command:', error);
         if (!interaction.replied && !interaction.deferred) {
@@ -114,5 +167,4 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-// Login bot using token
 client.login(process.env.TOKEN); 

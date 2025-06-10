@@ -5,7 +5,7 @@ module.exports = {
     description: 'Check bot latency',
     async execute(message, args) {
         const start = Date.now();
-        const tempMsg = await message.reply('Measuring ping...');
+        const tempMsg = await message.channel.send('Measuring ping...');
         const latency = Date.now() - start;
         const apiPing = message.client.ws.ping;
 

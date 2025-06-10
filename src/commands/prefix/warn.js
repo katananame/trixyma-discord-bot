@@ -24,7 +24,6 @@ function formatDuration(time, unit) {
     return `${time} ${forms[index]}`;
 }
 
-// Создаем функцию для генерации embed сообщений об ошибках
 function createErrorEmbed(message, client) {
     return new EmbedBuilder()
         .setColor('#ff0000')
@@ -37,7 +36,6 @@ function createErrorEmbed(message, client) {
         .setTimestamp();
 }
 
-// Создаем функцию для генерации успешных embed сообщений
 function createSuccessEmbed(message, client) {
     return new EmbedBuilder()
         .setColor('#9B59B6')
@@ -54,28 +52,30 @@ module.exports = {
     name: 'warn',
     description: 'Give a timeout warning to a user',
     async execute(message, args) {
-        // Check if user has Administrator permission
         if (!message.member.permissions.has(PermissionFlagsBits.Administrator)) {
             return message.reply({
                 embeds: [createErrorEmbed('This command is only available to administrators!', message.client)]
             });
         }
 
-        // Check if bot has permission to timeout members
         if (!message.guild.members.me.permissions.has(PermissionFlagsBits.ModerateMembers)) {
             return message.reply({
                 embeds: [createErrorEmbed('I don\'t have permission to timeout users!', message.client)]
             });
         }
 
-        // Check if there are enough arguments
         if (args.length < 2) {
             return message.reply({
-                embeds: [createErrorEmbed('Incorrect command usage!\n\nUse: t!warn **[Nickname]** **[Time s/m/h]** **[Reason]**\n\nExample: t!warn @User 1h Breaking rules', message.client)]
+                embeds: [createErrorEmbed(
+                    '**Incorrect command usage!**\n\n' +
+                    'Use: `t!warn [user] [duration] [reason]`\n' +
+                    'Example: `t!warn @User 1h Breaking rules`\n\n' +
+                    'Duration formats: `10m` (10 minutes), `1h` (1 hour), `1d` (1 day).',
+                    message.client
+                )]
             });
         }
 
-        // Get the target user
         const target = message.mentions.members.first();
         if (!target) {
             return message.reply({
@@ -83,19 +83,22 @@ module.exports = {
             });
         }
 
-        // Check if the target can be timed out
         if (!target.moderatable) {
             return message.reply({
                 embeds: [createErrorEmbed('I cannot timeout this user! They might have a higher role.', message.client)]
             });
         }
 
-        // Parse duration
         const durationStr = args[1];
         const match = durationStr.match(/^(\d+)([smhd])$/);
         if (!match) {
             return message.reply({
-                embeds: [createErrorEmbed('Invalid duration format! Use a number followed by s/m/h/d (example: 10m, 1h, 1d)', message.client)]
+                embeds: [createErrorEmbed(
+                    '**Invalid duration format!**\n\n' +
+                    'Use: A number followed by s/m/h/d (example: 10m, 1h, 1d).\n' +
+                    'Max duration: 28 days.',
+                    message.client
+                )]
             });
         }
 
@@ -108,7 +111,6 @@ module.exports = {
             });
         }
 
-        // Get the reason
         const reason = args.slice(2).join(' ') || 'No reason provided';
 
         try {

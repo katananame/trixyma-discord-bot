@@ -24,7 +24,6 @@ function formatDuration(time, unit) {
     return `${time} ${forms[index]}`;
 }
 
-// Создаем функцию для генерации embed сообщений об ошибках
 function createErrorEmbed(message, client) {
     return new EmbedBuilder()
         .setColor('#ff0000')
@@ -37,7 +36,6 @@ function createErrorEmbed(message, client) {
         .setTimestamp();
 }
 
-// Создаем функцию для генерации успешных embed сообщений
 function createSuccessEmbed(message, client) {
     return new EmbedBuilder()
         .setColor('#9B59B6')
@@ -69,7 +67,6 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
-        // Check if user has Administrator permission
         if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
             return interaction.reply({
                 embeds: [createErrorEmbed('This command is only available to administrators!', interaction.client)],
@@ -82,7 +79,6 @@ module.exports = {
         const durationStr = interaction.options.getString('duration');
         const reason = interaction.options.getString('reason');
 
-        // Check if the bot has permission to timeout members
         if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.ModerateMembers)) {
             return interaction.reply({
                 embeds: [createErrorEmbed('I don\'t have permission to timeout users!', interaction.client)],
@@ -90,7 +86,6 @@ module.exports = {
             });
         }
 
-        // Check if the target is valid
         if (!target) {
             return interaction.reply({
                 embeds: [createErrorEmbed('Could not find the specified user!', interaction.client)],
@@ -98,7 +93,6 @@ module.exports = {
             });
         }
 
-        // Check if the target can be timed out
         if (!target.moderatable) {
             return interaction.reply({
                 embeds: [createErrorEmbed('I cannot timeout this user! They might have a higher role.', interaction.client)],
@@ -106,11 +100,15 @@ module.exports = {
             });
         }
 
-        // Parse duration
         const match = durationStr.match(/^(\d+)([smhd])$/);
         if (!match) {
             return interaction.reply({
-                embeds: [createErrorEmbed('Invalid duration format!\n\nUse: **[Number]** followed by **[s/m/h/d]**\n\nExample: 1h, 30m, 1d', interaction.client)],
+                embeds: [createErrorEmbed(
+                    '**Invalid duration format!**\n\n' +
+                    'Use: A number followed by s/m/h/d (example: 10m, 1h, 1d).\n' +
+                    'Max duration: 28 days.',
+                    interaction.client
+                )],
                 ephemeral: true
             });
         }
@@ -118,7 +116,7 @@ module.exports = {
         const [, time, unit] = match;
         const duration = parseDuration(parseInt(time), unit);
 
-        if (duration <= 0 || duration > 2419200000) { // Max 28 days
+        if (duration <= 0 || duration > 2419200000) {
             return interaction.reply({
                 embeds: [createErrorEmbed('Duration must be greater than 0 and no more than 28 days!', interaction.client)],
                 ephemeral: true

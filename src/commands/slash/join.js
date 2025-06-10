@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { joinVoiceChannel } = require('@discordjs/voice');
 
-// Function to create error embed messages
 function createErrorEmbed(message, client) {
     return new EmbedBuilder()
         .setColor('#ff0000')
@@ -14,7 +13,6 @@ function createErrorEmbed(message, client) {
         .setTimestamp();
 }
 
-// Function to create success embed messages
 function createSuccessEmbed(message, client) {
     return new EmbedBuilder()
         .setColor('#9B59B6')
@@ -35,7 +33,6 @@ module.exports = {
     async execute(interaction) {
         const member = interaction.member;
 
-        // Check if user is in a voice channel
         if (!member.voice.channel) {
             return interaction.reply({
                 embeds: [createErrorEmbed('You need to be in a voice channel first!', interaction.client)],
@@ -44,7 +41,6 @@ module.exports = {
         }
 
         try {
-            // Join the voice channel using the correct method
             const connection = joinVoiceChannel({
                 channelId: member.voice.channel.id,
                 guildId: interaction.guild.id,

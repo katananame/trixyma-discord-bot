@@ -14,7 +14,7 @@ module.exports = {
                 })
                 .setTimestamp();
             
-            return message.reply({ embeds: [errorEmbed] });
+            return message.channel.send({ embeds: [errorEmbed] });
         }
 
         const amount = parseInt(args[0]);
@@ -29,49 +29,36 @@ module.exports = {
                 })
                 .setTimestamp();
             
-            return message.reply({ embeds: [errorEmbed] });
+            return message.channel.send({ embeds: [errorEmbed] });
         }
 
         try {
-            let totalDeletedCount = 0;
-            let remainingMessages = amount;
+            const messages = await message.channel.messages.fetch({ limit: amount });
+            await message.channel.bulkDelete(messages);
 
-            // Delete messages in batches of 100
-            while (remainingMessages > 0) {
-                const batchSize = Math.min(remainingMessages, 100);
-                const messages = await message.channel.messages.fetch({ limit: batchSize });
-                if (messages.size === 0) break; // No more messages to delete
-                
-                await message.channel.bulkDelete(messages);
-                totalDeletedCount += messages.size;
-                remainingMessages -= batchSize;
-            }
-            
             const successEmbed = new EmbedBuilder()
                 .setColor('#9B59B6')
-                .setDescription(`🟣 Successfully deleted ${totalDeletedCount} messages!`)
+                .setDescription(`✅ Successfully deleted ${messages.size} messages!`)
                 .setFooter({ 
                     text: 'Trixyma — Simple. Fast. Effective.',
                     iconURL: message.client.user.displayAvatarURL()
                 })
                 .setTimestamp();
-            
-            const reply = await message.channel.send({ embeds: [successEmbed] });
-            
-            setTimeout(() => reply.delete().catch(() => {}), 5000);
+
+            const confirmationMessage = await message.channel.send({ embeds: [successEmbed] });
+            setTimeout(() => confirmationMessage.delete().catch(() => {}), 5000);
         } catch (error) {
             console.error('Error clearing messages:', error);
-            
             const errorEmbed = new EmbedBuilder()
                 .setColor('#ff0000')
-                .setDescription('🔴 An error occurred while deleting messages!')
+                .setDescription('❌ An error occurred while clearing messages!')
                 .setFooter({ 
                     text: 'Trixyma — Simple. Fast. Effective.',
                     iconURL: message.client.user.displayAvatarURL()
                 })
                 .setTimestamp();
             
-            message.reply({ embeds: [errorEmbed] });
+            await message.channel.send({ embeds: [errorEmbed] });
         }
-    },
+    }
 }; 
